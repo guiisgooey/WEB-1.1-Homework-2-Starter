@@ -17,56 +17,88 @@ def homepage():
 @app.route('/froyo')
 def choose_froyo():
     """Shows a form to collect the user's Fro-Yo order."""
-    pass
+    return render_template('froyo_form.html')
 
 @app.route('/froyo_results')
 def show_froyo_results():
     """Shows the user what they ordered from the previous page."""
-    pass
+    context = {
+        'users_froyo_flavor': request.args.get('flavor'),
+        'users_froyo_toppings': request.args.get('toppings')
+    }
+    return render_template('froyo_results.html', **context)
 
 @app.route('/favorites')
 def favorites():
     """Shows the user a form to choose their favorite color, animal, and city."""
-    pass
+    return """
+    <form action="/favorites_results" method="GET">
+        What is your favorite color? <br/>
+        <input type="text" name="color"><br/>
+        What is your favorite animal? <br/>
+        <input type="text" name="animal"><br/>
+        What is your favorite city? <br/>
+        <input type="text" name="city"><br/>
+        <input type="submit" value="Submit!">
+    </form>
+    """
 
 @app.route('/favorites_results')
 def favorites_results():
     """Shows the user a nice message using their form results."""
-    pass
+    users_color = request.args.get('color')
+    users_animal = request.args.get('animal')
+    users_city = request.args.get('city')
+    return f'Wow, I didn\'t know {users_color} {users_animal}s lived in {users_city}!'
 
 @app.route('/secret_message')
 def secret_message():
     """Shows the user a form to collect a secret message. Sends the result via
     the POST method to keep it a secret!"""
-    pass
-
-@app.route('/message_results', methods=['POST'])
-def message_results():
-    """Shows the user their message, with the letters in sorted order."""
-    pass
-
-@app.route('/calculator')
-def calculator():
-    """Shows the user a form to enter 2 numbers and an operation."""
     return """
-    <form action="/calculator_results" method="GET">
-        Please enter 2 numbers and select an operator.<br/><br/>
-        <input type="number" name="operand1">
-        <select name="operation">
-            <option value="add">+</option>
-            <option value="subtract">-</option>
-            <option value="multiply">*</option>
-            <option value="divide">/</option>
-        </select>
-        <input type="number" name="operand2">
+    <form action="/message_results" method="POST">
+        What is your secret message? <br/>
+        <input type="text" name="message"><br/>
         <input type="submit" value="Submit!">
     </form>
     """
 
+@app.route('/message_results', methods=['POST'])
+def message_results():
+    """Shows the user their message, with the letters in sorted order."""
+    users_message = request.form.get('message')
+    sorted_message = sort_letters(users_message)
+    return f'Your encoded message: {sorted_message}'
+
+@app.route('/calculator')
+def calculator():
+    """Shows the user a form to enter 2 numbers and an operation."""
+    return render_template('calculator_form.html')
+
 @app.route('/calculator_results')
 def calculator_results():
     """Shows the user the result of their calculation."""
-    pass
+    operand1 = int(request.args.get('operand1'))
+    operand2 = int(request.args.get('operand2'))
+    operation = request.args.get('operation')
+    final = 0
+    if operation == "add":
+        final = operand1 + operand2
+    elif operation == "subtract":
+        final = operand1 - operand2
+    elif operation == "multiply":
+        final = operand1 * operand2
+    elif operation == "divide":
+        final = operand1 / operand2
+
+    context = {
+        'operand1': operand1,
+        'operand2': operand2,
+        'operation': operation,
+        'finalNum': final,
+    }
+
+    return render_template('calculator_results.html', **context)
 
 
 # List of compliments to be used in the `compliments_results` route (feel free 
@@ -106,8 +138,13 @@ def compliments():
 @app.route('/compliments_results')
 def compliments_results():
     """Show the user some compliments."""
+    num = int(request.args.get('num_compliments'))
+    compliments = random.sample(list_of_compliments, num)
+
     context = {
-        # TODO: Enter your context variables here.
+        'users_name': request.args.get('users_name'),
+        'wants_compliments': request.args.get('wants_compliments'),
+        'compliments': compliments
     }
 
     return render_template('compliments_results.html', **context)
